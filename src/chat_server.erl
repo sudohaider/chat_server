@@ -7,5 +7,5 @@ start() ->
     io:format("Chat server started.~n").
 
 stop() -> 
-    io:format("chat server stopped.~n").
+    io:format("Chat server stopped.~n").
 
