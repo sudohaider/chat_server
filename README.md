@@ -52,6 +52,6 @@ To run the chat server, follow these steps:
 
 To run the test, execute the following command:
 
-    ```erlang
-    rebar3 eunit
-    ```
+ ```erlang
+ rebar3 eunit
+ ```
