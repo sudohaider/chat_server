@@ -1,25 +1,38 @@
 # Chat Server
 
-This Erlang module implements a simple chat server that listens for connections on port 1234 and handles incoming client connections.
-
-## Description
-
-### Connecting Clients
-Clients can connect to the server using a TCP/IP connection to the specified port (1234 in this case).
-
-### Handling Client Connections
-The server accepts incoming client connections and spawns a new process to handle each connection. The `accept/1` function is responsible for accepting connections, while the `handle_client/1` function is responsible for handling client messages.
+This Erlang module implements a simple chat server that listens for connections on a certain port and handles incoming client connections.
 
 ## Functions
 
 ### `start/0`
 Starts the chat server and listens for incoming connections on port 1234.
 
-### `accept/1`
+### `accept/2`
 Accepts incoming connections on the specified socket and spawns a new process to handle each connection.
 
-### `handle_client/1`
-Handles messages received from the client socket. Prints a message when a client connects.
+### `handle_client/2`
+Handles messages received from the client socket.
+
+### `process_command/3`
+Processes the command received from the client socket.
+
+### `create_room/3`
+Creates a new chat room.
+
+### `destroy_room/3`
+Destroys a chat room.
+
+### `list_rooms/2`
+Lists all available chat rooms.
+
+### `join_room/3`
+Joins a user to a chat room.
+
+### `leave_room/3`
+Removes a user from a chat room.
+
+### `send_message/4`
+Sends a message to all users in a chat room.
 
 ## Building the Project
 
@@ -62,24 +75,53 @@ To run the chat server, follow these steps:
     ```
 This will start the server listening on port 1234.
 
-4. In another command terminal (client), execute the following command to connect to the chat server using Telnet:
+4. In another command terminal (client 1), execute the following command to connect to the chat server using Telnet:
 
 ```bash
 telnet localhost 1234
 ```
 
-This command will attempt to establish a TCP/IP connection to the chat server running on localhost (your own computer) on port 1234. If successful, you'll be connected to the chat server and can interact with it.
+This command will attempt to establish a TCP/IP connection to the chat server running on localhost (your own computer) on port 1234. If successful, you'll be connected to the chat server and can interact with it. 
 
-5. After connecting to the server, write the username in the client terminal to connect to the server and press Enter. For example:
+Repeat this step for multiple clients.
 
-```bash
-Haider
-```
+## Using the Server
 
-Replace "Haider" with the desired username. Once you've entered the username, it will be sent to the server, and the server will handle the connection accordingly.
+To use the individual functionalities of the chat server, follow these steps:
+
+1. **Create a Room**: To create a chat room, send a command in the format "CREATE RoomName" to the server. For example:
+    ```
+    CREATE Room1
+    ```
+
+2. **Destroy a Room**: To destroy a chat room, send a command in the format "DESTROY RoomName" to the server. For example:
+    ```
+    DESTROY Room1
+    ```
+
+3. **List Available Rooms**: To list all available chat rooms, send the command "LIST" to the server. For example:
+    ```
+    LIST
+    ```
+
+4. **Join a Room**: To join a chat room, send a command in the format "JOIN RoomName" to the server. For example:
+    ```
+    JOIN Room1
+    ```
+
+5. **Leave a Room**: To leave a chat room, send a command in the format "LEAVE RoomName" to the server. For example:
+    ```
+    LEAVE Room1
+    ```
+
+6. **Send a Message**: To send a message to a chat room, send a command in the format "SEND RoomName Message" to the server. For example:
+    ```
+    SEND Room1 Hello, everyone!
+    ```
+
+Remember to replace "RoomName" and "Message" with the appropriate values for your chat room and message. Additionally, ensure that the server is running and properly configured to handle client connections.
 
 ## Notes
 
 - This is a basic example and may not be suitable for production use.
 - Error handling and robustness features are not included for simplicity.
-
