@@ -41,7 +41,7 @@ To build the project, you need to have Erlang and rebar3 installed on your syste
 1. Clone the repository to your local machine:
 
     ```bash
-    git clone [https://github.com/alihaidersays/chat_server.git](https://github.com/alihaidersays/chat_server.git)
+    git clone https://github.com/alihaidersays/chat_server.git
     ```
 
 2. Navigate to the project directory:
