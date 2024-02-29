@@ -2,38 +2,6 @@
 
 This Erlang module implements a simple chat server that listens for connections on a certain port and handles incoming client connections.
 
-## Functions
-
-### `start/0`
-Starts the chat server and listens for incoming connections on port 1234.
-
-### `accept/2`
-Accepts incoming connections on the specified socket and spawns a new process to handle each connection.
-
-### `handle_client/2`
-Handles messages received from the client socket.
-
-### `process_command/3`
-Processes the command received from the client socket.
-
-### `create_room/3`
-Creates a new chat room.
-
-### `destroy_room/3`
-Destroys a chat room.
-
-### `list_rooms/2`
-Lists all available chat rooms.
-
-### `join_room/3`
-Joins a user to a chat room.
-
-### `leave_room/3`
-Removes a user from a chat room.
-
-### `send_message/4`
-Sends a message to all users in a chat room.
-
 ## Building the Project
 
 To build the project, you need to have Erlang and rebar3 installed on your system.
@@ -116,12 +84,23 @@ To use the individual functionalities of the chat server, follow these steps:
 
 6. **Send a Message**: To send a message to a chat room, send a command in the format "SEND RoomName Message" to the server. For example:
     ```
-    SEND Room1 Hello, everyone!
+    SEND Room1 Hello
     ```
 
-Remember to replace "RoomName" and "Message" with the appropriate values for your chat room and message. Additionally, ensure that the server is running and properly configured to handle client connections.
+7. **List Members**: To list all members of a specified chat room, send a command in the format "LISTMEMBERS RoomName" to the server. For example:
+    ```
+    LISTMEMBERS Room1
+    ```
+
+8. **Send Private Message**: After knowing the names of members using the previous command, you can send a private message to a member in the same chat room by sending the command "SENDPRIVATE RoomName UserName Message" to the server. For example:
+    ```
+    SENDPRIVATE Room1 User1 Hello
+    ```
+
+Remember to replace "RoomName", "UserName" and "Message" with the appropriate values for your chat room, user and message. Additionally, ensure that the server is running and properly configured to handle client connections.
 
 ## Notes
 
 - This is a basic example and may not be suitable for production use.
 - Error handling and robustness features are not included for simplicity.
+

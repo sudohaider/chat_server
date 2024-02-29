@@ -13,8 +13,12 @@ start() ->
     spawn(fun() -> accept(ListenSocket, State) end).
 
 accept(ListenSocket, State) ->
-    io:format("ACCEPT\n"),
     {ok, Socket} = gen_tcp:accept(ListenSocket),
+
+    {ok, {RemoteIP, RemotePort}} = inet:peername(Socket),
+
+    io:format("ACCEPT ~p ~p ~p \n", [Socket, RemotePort, RemoteIP]),
+    % {ok, Socket} = gen_tcp:accept(ListenSocket),
     spawn(fun() -> accept(ListenSocket, State) end),
     handle_client(Socket, State).
 
@@ -47,11 +51,17 @@ process_command(Command, Socket, State) ->
             leave_room(RoomName, Socket, State);
         ["SEND", RoomName, Message] ->
             send_message(RoomName, Message, Socket, State);
+        ["SENDPRIVATE", RoomName, UserName, Message] -> 
+            send_message_to_user(UserName, RoomName, Message, Socket, State);
+        ["LISTMEMBERS", RoomName] -> 
+            list_members(RoomName, State, Socket);
         _ ->
             State
     end.
 
 create_room(RoomName, Socket, State) ->
+    {ok, {RemoteIP, RemotePort}} = inet:peername(Socket),
+
     Room = #room{name = RoomName, creator = Socket},
     OldRooms = case ets:lookup(State, rooms) of
         [] -> [];
@@ -72,8 +82,6 @@ destroy_room(RoomName, Socket, State) ->
     end,
     State.
 
-
-
 list_rooms(Socket, State) ->
     io:format("LIST-STATE: ~p\n", [State]),
     [{rooms, Rooms}] = ets:lookup(State, rooms),
@@ -90,8 +98,14 @@ join_room(RoomName, Socket, State) ->
             %% No room with the given name was found, handle this case appropriately
             State;
         {[Room], OtherRooms} ->
+            {ok, {RemoteIP, RemotePort}} = inet:peername(Socket),
+            io:format("peername: ~p", [RemotePort]),
             NewRoom = Room#room{members = [Socket | Room#room.members]},
             NewRooms = [NewRoom | OtherRooms],
+            io:format("NEW-ROOMS: ~p\n", [NewRoom]),
+            io:format("OLD-ROOMS: ~p\n", [NewRoom]),
+
+
             ets:insert(State, {rooms, NewRooms}),
             State
     end.
@@ -101,11 +115,57 @@ leave_room(RoomName, Socket, State) ->
     NewRoom = (hd(Room))#room{members = lists:delete(Socket, (hd(Room))#room.members)},
     ets:insert(State, {rooms, [NewRoom | OtherRooms]}).
 
-
 send_message(RoomName, Message, Socket, State) ->
     {Room, X} = lists:partition(fun(#room{name = N}) -> N == RoomName end, ets:lookup_element(state, rooms, 2)),
     io:format("SEND-ROOM: ~p\n", [(hd(Room))#room.members]),
     io:format("SEND-rooms: ~p\n", [X]),
-
     lists:foreach(fun(Client) -> gen_tcp:send(Client, io_lib:format("~p: ~s\n", [Socket, Message])) end, (hd(Room))#room.members),
     State.
+
+send_message_to_user(Username, RoomName, Message, Socket, State) ->
+    {Room, _} = lists:partition(fun(#room{name = N}) -> N == RoomName end, ets:lookup_element(state, rooms, 2)),
+    io:format("UserName ~p", [Username]),
+    io:format("Room: ~p", [(hd(Room))#room.members] ),
+    UserSocket = find_socket_by_port(Username, Room),
+    io:format("UserSocket: ~p\n", [UserSocket]),
+    case UserSocket of
+        false ->
+            io:format("User not found in the room\n"),
+            State;
+        _ ->
+            gen_tcp:send(hd(UserSocket), io_lib:format("~p: ~s\n", [Socket, Message])),
+            State
+    end.
+
+list_members(RoomName, State, Socket) ->
+    {Room, _} = lists:partition(fun(#room{name = N}) -> N == RoomName end, ets:lookup_element(state, rooms, 2)),
+    io:format("Room is ~p \n", [Room]),
+    case Room of
+        [] ->
+            io:format("Room not found\n"),
+            State;
+        _ ->
+            Members = (hd(Room))#room.members,
+            NewList = lists:map(fun(Element) ->
+                % Extract the property from the element
+                {ok, {RemoteIP, RemotePort}} = inet:peername(Element),
+                % Return the property
+                RemotePort
+                end, Members),
+
+            io:format("Members of the room ~p: ~p\n", [RoomName, NewList]),
+            gen_tcp:send(Socket, io_lib:format("Members of the room ~p: ~p\n", [RoomName, NewList])),
+            State
+    end.
+
+find_socket_by_port(Username, Room) ->
+    lists:filter(fun(Socket) ->
+        case inet:peername(Socket) of
+            {ok, {_RemoteIP, RemotePort}} ->
+                case integer_to_list(RemotePort) == Username of
+                    true -> true;
+                    _ -> false
+                end;
+            _ -> false
+        end
+    end, (hd(Room))#room.members).
